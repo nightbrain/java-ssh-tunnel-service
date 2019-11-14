@@ -82,16 +82,16 @@ public class Main {
 
   private static void startConnect() {
     LibSsh libSsh = new LibSsh();
-    boolean isConnected;
     do {
       String[] ssh = getSsh();
-      isConnected = libSsh.connect(ssh[0], ssh[1], ssh[2]);
+      boolean isConnected = libSsh.connect(ssh[0], ssh[1], ssh[2]);
       if (isConnected) {
         connecterLists.put(libSsh.getPort(), libSsh);
         jedis2.publish("SSH_CHANNEL_OK", libSsh.getPort() + "");
         System.out.println("Tunnel: " + ssh[0] + " -> :" + libSsh.getPort() + ".");
+        break;
       } else libSsh.disconnect();
-    } while (!isConnected);
+    } while (true);
   }
 
   private static String[] getSsh() {
