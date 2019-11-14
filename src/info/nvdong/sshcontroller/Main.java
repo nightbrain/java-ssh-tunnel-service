@@ -45,8 +45,8 @@ public class Main {
             }
           };
       jedis.subscribe(jedisPubSub, "SSH_CHANNEL");
-    } catch (Exception ex) {
-      System.out.println("Exception : " + ex.getMessage());
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
