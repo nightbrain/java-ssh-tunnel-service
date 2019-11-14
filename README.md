@@ -1,5 +1,3 @@
-# java-ssh-tunnel-service
-
 # :construction: W.I.P.
 
  - Redis commands:
