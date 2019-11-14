@@ -85,7 +85,8 @@ public class LibSsh {
         ServerSocket s = new ServerSocket(0);
         s.close();
         port = s.getLocalPort();
-      } catch (Error | IOException ignored) {
+      } catch (Error | IOException e) {
+        e.printStackTrace();
       }
     } while (port == -1);
     return port;
