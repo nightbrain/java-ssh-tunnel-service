@@ -55,21 +55,7 @@ public class Main {
       case "connect":
         int time = Integer.parseInt(action.getData());
         for (int i = 0; i < time; i++) {
-          new Thread(
-                  () -> {
-                    LibSsh libSsh = new LibSsh();
-                    do {
-                      String[] ssh = getSsh();
-                      boolean isConnected = libSsh.connect(ssh[0], ssh[1], ssh[2]);
-                      if (isConnected) {
-                        System.out.println("Tunnel: " + ssh[0] + " -> " + libSsh.getPort() + ".");
-                        connecterLists.put(libSsh.getPort(), libSsh);
-                        jedis2.publish("SSH_CHANNEL_OK", libSsh.getPort() + "");
-                        break;
-                      } else libSsh.disconnect();
-                    } while (true);
-                  })
-              .start();
+          new Thread(Main::startConnect).start();
         }
         break;
       case "disconnect":
@@ -92,6 +78,20 @@ public class Main {
         connecterLists.clear();
         break;
     }
+  }
+
+  private static void startConnect() {
+    LibSsh libSsh = new LibSsh();
+    do {
+      String[] ssh = getSsh();
+      boolean isConnected = libSsh.connect(ssh[0], ssh[1], ssh[2]);
+      if (isConnected) {
+        connecterLists.put(libSsh.getPort(), libSsh);
+        jedis2.publish("SSH_CHANNEL_OK", libSsh.getPort() + "");
+        System.out.println("Tunnel: " + ssh[0] + " -> :" + libSsh.getPort() + ".");
+        break;
+      } else libSsh.disconnect();
+    } while (true);
   }
 
   private static String[] getSsh() {
