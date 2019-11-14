@@ -20,5 +20,5 @@ SUBSCRIBE SSH_CHANNEL_OK
 # Receive: 
 # 1) "message"
 # 2) "SSH_CHANNEL_OK"
-# 3) "57835"
+# 3) "57835" -> Listened port.
 ```
