@@ -13,6 +13,7 @@ import java.util.concurrent.Semaphore;
 public class Main {
   private static Jedis jedis2;
   private static Semaphore getSshSph = new Semaphore(1);
+  private static Semaphore publishSph = new Semaphore(1);
   private static ArrayList<String[]> sshLists = new ArrayList();
   private static HashMap<Integer, LibSsh> connecterLists = new HashMap();
 
@@ -88,7 +89,13 @@ public class Main {
       isConnected = libSsh.connect(ssh[0], ssh[1], ssh[2]);
       if (isConnected) {
         connecterLists.put(libSsh.getPort(), libSsh);
-        jedis2.publish("SSH_CHANNEL_OK", libSsh.getPort() + "");
+        try{
+          publishSph.acquire();
+          jedis2.publish("SSH_CHANNEL_OK", libSsh.getPort() + "");
+          publishSph.release();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
         System.out.println("Tunnel: " + ssh[0] + " -> :" + libSsh.getPort() + ".");
       } else libSsh.disconnect();
     } while (!isConnected);
