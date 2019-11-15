@@ -88,6 +88,10 @@ public class Main {
       String[] ssh = getSsh();
       isConnected = libSsh.connect(ssh[0], ssh[1], ssh[2]);
       if (isConnected) {
+        if (connecterLists.containsKey(libSsh.getPort())) {
+          connecterLists.get(libSsh.getPort()).disconnect();
+          connecterLists.remove(libSsh.getPort());
+        }
         connecterLists.put(libSsh.getPort(), libSsh);
         try{
           publishSph.acquire();
