@@ -14,8 +14,10 @@ public class Main {
   private static Jedis jedis2;
   private static Semaphore getSshSph = new Semaphore(1);
   private static Semaphore publishSph = new Semaphore(1);
+  private static Semaphore clearSph = new Semaphore(1);
   private static ArrayList<String[]> sshLists = new ArrayList();
   private static HashMap<Integer, LibSsh> connecterLists = new HashMap();
+  private static boolean isCleared = false;
 
   public static void main(String[] args) {
     LibSsh.disableLogger();
@@ -54,6 +56,13 @@ public class Main {
   private static void onMessage(Action action) {
     switch (action.getAction()) {
       case "connect":
+        try {
+          clearSph.acquire();
+          isCleared = false;
+          clearSph.release();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
         int time = Integer.parseInt(action.getData());
         for (int i = 0; i < time; i++) {
           new Thread(Main::startConnect).start();
@@ -73,6 +82,13 @@ public class Main {
         }
         break;
       case "clear":
+        try {
+          clearSph.acquire();
+          isCleared = true;
+          clearSph.release();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
         for (LibSsh value : connecterLists.values()) {
           value.disconnect();
         }
@@ -92,15 +108,27 @@ public class Main {
           connecterLists.get(libSsh.getPort()).disconnect();
           connecterLists.remove(libSsh.getPort());
         }
-        connecterLists.put(libSsh.getPort(), libSsh);
-        try{
-          publishSph.acquire();
-          jedis2.publish("SSH_CHANNEL_OK", libSsh.getPort() + "");
-          publishSph.release();
+        boolean dis = false;
+        try {
+          clearSph.acquire();
+          dis = isCleared;
+          clearSph.release();
         } catch (Exception e) {
           e.printStackTrace();
         }
-        System.out.println("Tunnel: " + ssh[0] + " -> :" + libSsh.getPort() + ".");
+        if (dis) {
+          libSsh.disconnect();
+        } else {
+          connecterLists.put(libSsh.getPort(), libSsh);
+          try {
+            publishSph.acquire();
+            jedis2.publish("SSH_CHANNEL_OK", libSsh.getPort() + "");
+            publishSph.release();
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+          System.out.println("Tunnel: " + ssh[0] + " -> :" + libSsh.getPort() + ".");
+        }
       } else libSsh.disconnect();
     } while (!isConnected);
   }

@@ -27,9 +27,9 @@ public class LibSsh {
     client.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
     client.start();
     try {
-      session = client.connect(username, host, 22).verify(7000).getSession();
+      session = client.connect(username, host, 22).verify(5000).getSession();
       session.addPasswordIdentity(password);
-      session.auth().verify(15000);
+      session.auth().verify(10000);
       SshdSocketAddress sshdSocketAddress =
           session.startDynamicPortForwarding(new SshdSocketAddress("127.0.0.1", getFreePort()));
       Proxy proxy =
@@ -38,7 +38,7 @@ public class LibSsh {
               new InetSocketAddress(sshdSocketAddress.getHostName(), sshdSocketAddress.getPort()));
       HttpURLConnection connection =
           (HttpURLConnection) new URL("https://www.googleapis.com/").openConnection(proxy);
-      connection.setConnectTimeout(10000);
+      connection.setConnectTimeout(2500);
       if (connection.getResponseCode() == 404) {
         connection.disconnect();
         try {
