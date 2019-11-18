@@ -29,7 +29,7 @@ public class Main {
                 while (true) {
                   try {
                     long listeners = jedis2.publish("SSH_CHANNEL_OK", "-1");
-                    if (listeners==0) {
+                    if (listeners == 0) {
                       jedis2.publish("SSH_CHANNEL", "clear|~");
                     }
                     Thread.sleep(3000);
@@ -133,6 +133,7 @@ public class Main {
         }
         if (dis) {
           libSsh.disconnect();
+          break;
         } else {
           connecterLists.put(libSsh.getPort(), libSsh);
           try {
