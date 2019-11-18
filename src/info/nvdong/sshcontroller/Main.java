@@ -24,6 +24,21 @@ public class Main {
     try {
       Jedis jedis = new Jedis();
       jedis2 = new Jedis();
+      new Thread(
+              () -> {
+                while (true) {
+                  try {
+                    long listeners = jedis2.publish("SSH_CHANNEL_OK", "-1");
+                    if (listeners==0) {
+                      jedis2.publish("SSH_CHANNEL", "clear|~");
+                    }
+                    Thread.sleep(3000);
+                  } catch (InterruptedException e) {
+                    e.printStackTrace();
+                  }
+                }
+              })
+          .start();
       JedisPubSub jedisPubSub =
           new JedisPubSub() {
             @Override
